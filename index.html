@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Recipes</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: #f9f9fb;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      background: #ff7043;
+      color: white;
+      padding: 20px;
+      margin: 0;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .controls {
+      background: white;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    input, select, button {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      outline: none;
+    }
+
+    button {
+      background-color: #ff7043;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff5722;
+    }
+
+    #recipe-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .recipe-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: left;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .recipe-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .recipe-card h3 {
+      margin: 5px 0 10px;
+      color: #333;
+    }
+
+    .recipe-card p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    .recipe-card a {
+      display: inline-block;
+      margin-top: 8px;
+      text-decoration: none;
+      color: #ff7043;
+      font-weight: bold;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0 40px;
+      gap: 10px;
+    }
+
+    #page-info {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1> RECIPES</h1>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search recipes...">
+    <select id="sort">
+      <option value="rating">Sort by Rating</option>
+      <option value="total_time">Sort by Total Time</option>
+      <option value="title">Sort by Title</option>
+    </select>
+    <button onclick="loadRecipes()"> Search</button>
+  </div>
+
+  <div id="recipe-container"></div>
+
+  <div class="pagination">
+    <button onclick="prevPage()">⬅ Prev</button>
+    <span id="page-info"></span>
+    <button onclick="nextPage()">Next ➡</button>
+  </div>
+
+  <script>
+    let page = 1;
+
+    async function loadRecipes() {
+      const search = document.getElementById('search').value;
+      const sort = document.getElementById('sort').value;
+      const res = await fetch(`/recipes?search=${search}&sort_by=${sort}&page=${page}&per_page=5`);
+      const data = await res.json();
+
+      const container = document.getElementById('recipe-container');
+      container.innerHTML = "";
+
+      if (data.length === 0) {
+        container.innerHTML = `<p style="color:#777;">No recipes found 🍳</p>`;
+        return;
+      }
+
+      data.forEach(r => {
+        const card = document.createElement('div');
+        card.className = "recipe-card";
+        card.innerHTML = `
+          <h3>${r.title}</h3>
+          <p><b>Cuisine:</b> ${r.cuisine}</p>
+          <p><b>Rating:</b> ⭐ ${r.rating}</p>
+          <p>${r.description}</p>
+          <a href="${r.url}" target="_blank">View Recipe →</a>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('page-info').textContent = `Page ${page}`;
+    }
+
+    function nextPage() { page++; loadRecipes(); }
+    function prevPage() { if (page > 1) page--; loadRecipes(); }
+
+    loadRecipes();
+  </script>
+</body>
+</html>
